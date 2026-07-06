@@ -153,7 +153,7 @@
 
 <div id="gallery" class="overlay hidden">
   <h1 style="font-size:38px">GALLERY</h1>
-  <div class="tag">every day you play becomes a card &middot; miss a day — the gap stays forever</div>
+  <div class="tag">the colors YOU locked become the day's card — no two players paint the same &middot; miss a day, keep the gap</div>
   <div id="galGrid"></div>
   <button class="cta" id="galBack">BACK</button>
 </div>
@@ -282,6 +282,7 @@ function hslToHex(h, s, l){
 const ROUNDS = 10;
 let state = 'menu';                 // menu | play | results | gallery
 let rng, targets = [], round = 0, score = 0, perfects = 0, matchSum = 0, matches = 0;
+let playerCols = [], lowCount = 0, assistHinted = false;
 let roundStart = 0, period = 2.2, locked = false, lockedUntil = 0, lockCol = null;
 let mixPhase = 0, mixA = 0;         // MIX: 0 = locking A, 1 = locking B
 let particles = [], floats = [], shake = 0;
@@ -295,6 +296,7 @@ function newRun(){
     else { const a = rng() * 360, b = (a + 90 + rng() * 140) % 360; targets.push({ a, b, h: circMean(a, b), s: 80, l: 55 }); }
   }
   round = 0; score = 0; perfects = 0; matchSum = 0; matches = 0;
+  playerCols = []; lowCount = 0;
   particles = []; floats = [];
   state = 'play';
   show(menuEl, false); show(resultsEl, false); show(galleryEl, false);
@@ -305,7 +307,9 @@ function newRun(){
 }
 function startRound(){
   locked = false; lockCol = null; mixPhase = 0;
-  period = Math.max(1.05, (modeSel === 'hue' ? 2.3 : 2.0) - round * 0.13);
+  // первые два раунда мягче — совет: «unforgiving difficulty curve»
+  const easeIn = round === 0 ? 0.35 : round === 1 ? 0.15 : 0;
+  period = Math.max(1.05, (modeSel === 'hue' ? 2.3 : 2.0) - round * 0.13 + easeIn);
   roundStart = performance.now();
   const tg = targets[round];
   roundV.textContent = (round + 1) + '/' + ROUNDS;
@@ -382,6 +386,11 @@ function lock(){
 
   locked = true; lockedUntil = performance.now() + 750;
   matchSum += matchPct; matches++;
+  playerCols.push(hslToHex(lockCol.h, lockCol.s || 80, lockCol.l || 55));
+  if (matchPct < 60) {
+    lowCount++;
+    if (lowCount === 2 && !assist && !assistHinted) { assistHinted = true; toast('Tip: turn on ◉ assist in the menu — it shows the moment'); }
+  }
   const isPerfect = matchPct >= 96;
   const pts = Math.round(matchPct) + (isPerfect ? 50 : 0);
   score += Math.max(0, pts);
@@ -413,10 +422,9 @@ function endRun(){
   let isNew = '';
   if (score > todayBest) { todayBest = score; LS.set('cs_best_' + modeSel + '_' + dateStr, score); isNew = '★ TODAY\'S NEW BEST ★'; }
   if (score > allBest)   { allBest = score;  LS.set('cs_best_all_' + modeSel, score);             isNew = '🏆 ALL-TIME RECORD 🏆'; }
-  // gallery card (best of day across modes, stores today's HUE palette)
+  // gallery card = ВАШИ пойманные цвета (совет: личная причастность) — у каждого игрока свой рисунок дня
   const gal = LS.get('cs_gallery', {});
-  const hueRng = mulberry32(hashStr('color-surge-' + dateStr + '-hue'));
-  const cols = []; for (let i = 0; i < ROUNDS; i++) cols.push(hslToHex(hueRng() * 360, 85, 55));
+  const cols = playerCols.length ? playerCols.slice(0, ROUNDS) : targets.map(tg => hslToHex(tg.h, tg.s || 85, tg.l || 55));
   if (!gal[dateStr] || score > gal[dateStr].score) gal[dateStr] = { score, avg: Math.round(avg), colors: cols };
   LS.set('cs_gallery', gal);
 
@@ -427,7 +435,7 @@ function endRun(){
   document.getElementById('rTodayBest').textContent = todayBest;
   document.getElementById('rStreak').textContent = dayStreak + '🔥';
   const pal = document.getElementById('rPalette'); pal.innerHTML = '';
-  for (const tgt of targets) { const d = document.createElement('div'); d.style.background = hsl(tgt.h, tgt.s || 85, tgt.l || 55); pal.appendChild(d); }
+  for (const c of cols) { const d = document.createElement('div'); d.style.background = c; pal.appendChild(d); }
   const msgs = avg >= 90 ? ['painter\'s eye.', 'that was surgical.', 'color god.']
              : avg >= 75 ? ['sharp eye. sharper next run?', 'so close to a perfect day.', 'the palette respects you.']
              : ['warm-up round. it counts.', 'the ring is faster than it looks.', 'one more — you\'ve got the feel now.'];
@@ -572,11 +580,19 @@ function renderGallery(){
 }
 
 // ---------- share ----------
-let lastAvg = 0;
+function hueEmoji(hex){
+  const r = parseInt(hex.slice(1,3),16)/255, g = parseInt(hex.slice(3,5),16)/255, b = parseInt(hex.slice(5,7),16)/255;
+  const mx = Math.max(r,g,b), mn = Math.min(r,g,b); let h = 0;
+  if (mx !== mn) { const d = mx - mn;
+    h = mx === r ? ((g-b)/d + (g<b?6:0)) : mx === g ? ((b-r)/d + 2) : ((r-g)/d + 4); h *= 60; }
+  if (h < 25 || h >= 330) return '🟥'; if (h < 50) return '🟧'; if (h < 70) return '🟨';
+  if (h < 160) return '🟩'; if (h < 250) return '🟦'; return '🟪';
+}
 function shareText(){
   const avg = matches ? (matchSum / matches).toFixed(1) : '0';
   const m = modeSel.toUpperCase();
-  return '🎨 COLOR SURGE [' + m + '] — ' + score + ' pts, ' + avg + '% avg match on today\'s palette. Everyone on Earth gets the SAME colors today. Beat me?';
+  const emo = playerCols.length ? ' My palette: ' + playerCols.map(hueEmoji).join('') + '.' : '';
+  return '🎨 COLOR SURGE [' + m + '] — ' + score + ' pts, ' + avg + '% avg match on today\'s palette.' + emo + ' Everyone on Earth gets the SAME colors today. Beat me?';
 }
 document.getElementById('shareBtn').addEventListener('click', async () => {
   const data = { title: 'COLOR SURGE', text: shareText(), url: location.href };

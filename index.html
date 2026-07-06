@@ -27,10 +27,9 @@
   #target .lbl { font-family:var(--mono); font-size:10px; color:#7d6d9c; letter-spacing:3.5px; text-transform:uppercase; margin-bottom:7px; }
   #swatch { width:80px; height:80px; border-radius:18px; margin:0 auto; border:2px solid rgba(255,255,255,.7); position:relative; }
   #swatch::after { content:''; position:absolute; inset:4px; border-radius:12px; border:1px solid rgba(255,255,255,.25); }
-  #dots { display:flex; gap:5px; justify-content:center; margin-top:10px; }
-  #dots i { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.14); }
-  #dots i.done { background:#ffd24d; box-shadow:0 0 5px rgba(255,210,77,.6); }
-  #dots i.cur { background:#fff; }
+  #dots { display:flex; gap:7px; justify-content:center; margin-top:10px; }
+  #dots i.heart { width:11px; height:11px; border-radius:50%; background:#ff4d6a; box-shadow:0 0 7px rgba(255,77,106,.7); }
+  #dots i.heart.off { background:rgba(255,255,255,.12); box-shadow:none; }
   #mixRow { display:flex; gap:8px; justify-content:center; margin-top:8px; }
   .mini { width:26px; height:26px; border-radius:8px; border:2px solid rgba(255,255,255,.6); background:#2a2140; }
   #hint { position:fixed; bottom:26px; left:0; right:0; text-align:center; font-size:14px; color:#cbb8e8; letter-spacing:1px; pointer-events:none; z-index:5; text-shadow:0 1px 4px #000; }
@@ -127,7 +126,7 @@
   <div id="shop"></div>
   <div class="toggles"><button class="btn2" id="assistBtn">◉ assist: off</button></div>
   <button class="cta" id="playBtn">TAP TO PLAY</button>
-  <div class="howto">the ring cycles through colors — freeze it at the right moment<br>collect today's palette in your <b style="color:#e09fff">Gallery</b> · miss a day, keep the gap forever</div>
+  <div class="howto">the ring cycles through colors — freeze it at the right moment<br>❤❤❤ three lives · a sloppy match (&lt;60%) burns one · how deep can you go?<br>the colors you catch become today's card in your <b style="color:#e09fff">Gallery</b></div>
 </div>
 
 <div id="results" class="overlay hidden">
@@ -137,6 +136,7 @@
   <div id="rPalette"></div>
   <div id="coinsEarned"></div>
   <div class="stats">
+    <div class="stat"><div class="v" id="rRounds">0</div><div class="l">rounds</div></div>
     <div class="stat"><div class="v" id="rAvg">0%</div><div class="l">avg match</div></div>
     <div class="stat"><div class="v" id="rPerf">0</div><div class="l">perfects</div></div>
     <div class="stat"><div class="v" id="rTodayBest">0</div><div class="l">today's best</div></div>
@@ -279,10 +279,17 @@ function hslToHex(h, s, l){
 }
 
 // ---------- run state ----------
-const ROUNDS = 10;
+const ROUNDS = 10;                  // размер карточки в галерее (первые 10 пойманных цветов)
+const MAX_LIVES = 3;
 let state = 'menu';                 // menu | play | results | gallery
 let rng, targets = [], round = 0, score = 0, perfects = 0, matchSum = 0, matches = 0;
-let playerCols = [], lowCount = 0, assistHinted = false;
+let playerCols = [], lowCount = 0, assistHinted = false, lives = MAX_LIVES;
+function genTarget(){
+  if (modeSel === 'hue') return { h: rng() * 360, s: 85, l: 55 };
+  if (modeSel === 'shade') return { h: rng() * 360, s: 75, l: 22 + rng() * 52 };
+  const a = rng() * 360, b = (a + 90 + rng() * 140) % 360;
+  return { a, b, h: circMean(a, b), s: 80, l: 55 };
+}
 let roundStart = 0, period = 2.2, locked = false, lockedUntil = 0, lockCol = null;
 let mixPhase = 0, mixA = 0;         // MIX: 0 = locking A, 1 = locking B
 let particles = [], floats = [], shake = 0;
@@ -290,13 +297,8 @@ let particles = [], floats = [], shake = 0;
 function newRun(){
   rng = mulberry32(hashStr('color-surge-' + dateStr + '-' + modeSel));
   targets = [];
-  for (let i = 0; i < ROUNDS; i++) {
-    if (modeSel === 'hue') targets.push({ h: rng() * 360, s: 85, l: 55 });
-    else if (modeSel === 'shade') targets.push({ h: rng() * 360, s: 75, l: 22 + rng() * 52 });
-    else { const a = rng() * 360, b = (a + 90 + rng() * 140) % 360; targets.push({ a, b, h: circMean(a, b), s: 80, l: 55 }); }
-  }
   round = 0; score = 0; perfects = 0; matchSum = 0; matches = 0;
-  playerCols = []; lowCount = 0;
+  playerCols = []; lowCount = 0; lives = MAX_LIVES;
   particles = []; floats = [];
   state = 'play';
   show(menuEl, false); show(resultsEl, false); show(galleryEl, false);
@@ -307,18 +309,19 @@ function newRun(){
 }
 function startRound(){
   locked = false; lockCol = null; mixPhase = 0;
+  while (targets.length <= round) targets.push(genTarget());   // бесконечная дневная последовательность
   // первые два раунда мягче — совет: «unforgiving difficulty curve»
   const easeIn = round === 0 ? 0.35 : round === 1 ? 0.15 : 0;
-  period = Math.max(1.05, (modeSel === 'hue' ? 2.3 : 2.0) - round * 0.13 + easeIn);
+  period = Math.max(0.85, (modeSel === 'hue' ? 2.3 : 2.0) - round * 0.09 + easeIn);
   roundStart = performance.now();
   const tg = targets[round];
-  roundV.textContent = (round + 1) + '/' + ROUNDS;
+  roundV.textContent = 'R' + (round + 1);
   swatchEl.style.background = hsl(tg.h, tg.s, tg.l);
   swatchEl.style.boxShadow = '0 0 16px hsla(' + tg.h.toFixed(0) + ',' + tg.s + '%,' + tg.l + '%,.45)';
   dotsEl.innerHTML = '';
-  for (let i = 0; i < ROUNDS; i++) {
+  for (let i = 0; i < MAX_LIVES; i++) {
     const d = document.createElement('i');
-    if (i < round) d.className = 'done'; else if (i === round) d.className = 'cur';
+    d.className = 'heart' + (i < lives ? '' : ' off');
     dotsEl.appendChild(d);
   }
   if (modeSel === 'mix') {
@@ -388,7 +391,7 @@ function lock(){
   matchSum += matchPct; matches++;
   playerCols.push(hslToHex(lockCol.h, lockCol.s || 80, lockCol.l || 55));
   if (matchPct < 60) {
-    lowCount++;
+    lives--; lowCount++;
     if (lowCount === 2 && !assist && !assistHinted) { assistHinted = true; toast('Tip: turn on ◉ assist in the menu — it shows the moment'); }
   }
   const isPerfect = matchPct >= 96;
@@ -406,7 +409,7 @@ function lock(){
 
   setTimeout(() => {
     round++;
-    if (round >= ROUNDS) endRun();
+    if (lives <= 0) endRun();
     else startRound();
   }, 760);
 }
@@ -430,6 +433,7 @@ function endRun(){
 
   document.getElementById('newbest').textContent = isNew;
   document.getElementById('rScore').textContent = score;
+  document.getElementById('rRounds').textContent = round;
   document.getElementById('rAvg').textContent = avg.toFixed(1) + '%';
   document.getElementById('rPerf').textContent = perfects;
   document.getElementById('rTodayBest').textContent = todayBest;
@@ -591,8 +595,8 @@ function hueEmoji(hex){
 function shareText(){
   const avg = matches ? (matchSum / matches).toFixed(1) : '0';
   const m = modeSel.toUpperCase();
-  const emo = playerCols.length ? ' My palette: ' + playerCols.map(hueEmoji).join('') + '.' : '';
-  return '🎨 COLOR SURGE [' + m + '] — ' + score + ' pts, ' + avg + '% avg match on today\'s palette.' + emo + ' Everyone on Earth gets the SAME colors today. Beat me?';
+  const emo = playerCols.length ? ' My palette: ' + playerCols.slice(0, 10).map(hueEmoji).join('') + '.' : '';
+  return '🎨 COLOR SURGE [' + m + '] — survived ' + round + ' rounds, ' + score + ' pts, ' + avg + '% avg match.' + emo + ' Everyone on Earth gets the SAME color sequence today. Beat me?';
 }
 document.getElementById('shareBtn').addEventListener('click', async () => {
   const data = { title: 'COLOR SURGE', text: shareText(), url: location.href };

@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>COLOR SURGE — tap when the colors match. Same palette for everyone. Today.</title>
+<meta name="description" content="A color-matching timing game. The ring cycles through colors — tap the exact moment it matches the target. Everyone on Earth gets the SAME 10 colors today. Collect every day in your Gallery.">
+<meta property="og:title" content="COLOR SURGE">
+<meta property="og:description" content="Everyone matches the SAME palette today. 99%+ = PERFECT. Beat my accuracy?">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='34' fill='none' stroke='%23ff2dd4' stroke-width='12'/><circle cx='50' cy='50' r='13' fill='%2300ffc8'/></svg>">
+<script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; }
+  html,body { width:100%; height:100%; overflow:hidden; background:#0a0514; font-family:'Segoe UI',system-ui,sans-serif; }
+  #game { position:fixed; inset:0; display:block; touch-action:none; }
+
+  /* HUD */
+  #hud { position:fixed; top:0; left:0; right:0; display:flex; justify-content:space-between; align-items:flex-start; padding:14px 16px; pointer-events:none; z-index:5; }
+  .hcell { text-align:center; }
+  .hcell .v { font-size:26px; font-weight:800; color:#fff; text-shadow:0 0 14px #ff2dd4; font-variant-numeric:tabular-nums; }
+  .hcell .l { font-size:10px; color:#a08cc0; text-transform:uppercase; letter-spacing:2px; }
+  #target { position:fixed; top:64px; left:50%; transform:translateX(-50%); z-index:5; text-align:center; pointer-events:none; }
+  #target .lbl { font-size:11px; color:#a08cc0; letter-spacing:3px; text-transform:uppercase; margin-bottom:6px; }
+  #swatch { width:92px; height:92px; border-radius:20px; margin:0 auto; border:3px solid rgba(255,255,255,.85); box-shadow:0 0 30px rgba(0,0,0,.5); }
+  #mixRow { display:flex; gap:8px; justify-content:center; margin-top:8px; }
+  .mini { width:26px; height:26px; border-radius:8px; border:2px solid rgba(255,255,255,.6); background:#2a2140; }
+  #hint { position:fixed; bottom:26px; left:0; right:0; text-align:center; font-size:14px; color:#cbb8e8; letter-spacing:1px; pointer-events:none; z-index:5; text-shadow:0 1px 4px #000; }
+
+  /* overlays */
+  .overlay { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:10; background:radial-gradient(ellipse at center,rgba(20,8,40,.6) 0%,rgba(8,3,18,.95) 100%); color:#fff; text-align:center; padding:20px; overflow-y:auto; }
+  .hidden { display:none !important; }
+  h1 { font-size:clamp(38px,9vw,72px); font-weight:900; letter-spacing:5px;
+    background:linear-gradient(90deg,#ff4d4d,#ffd24d,#4dff88,#00e5ff,#c04dff,#ff2dd4); background-size:300%;
+    -webkit-background-clip:text; background-clip:text; color:transparent; animation:rainbow 6s linear infinite;
+    filter:drop-shadow(0 0 22px rgba(255,45,212,.4)); }
+  @keyframes rainbow { to { background-position:300%; } }
+  .tag { color:#cbb8e8; font-size:15px; margin:8px 0 18px; letter-spacing:.5px; }
+  .daily { border:1px solid rgba(255,45,212,.35); border-radius:14px; padding:12px 22px; margin-bottom:16px; background:rgba(255,45,212,.06); }
+  .daily b { color:#ff8de9; }
+  .daily .cd { color:#8de9ff; font-size:13px; margin-top:4px; }
+  .stats { display:flex; gap:24px; margin-bottom:16px; flex-wrap:wrap; justify-content:center; }
+  .stat { text-align:center; min-width:70px; }
+  .stat .v { font-size:26px; font-weight:800; color:#fff; text-shadow:0 0 14px #c04dff; }
+  .stat .l { font-size:10px; color:#a08cc0; text-transform:uppercase; letter-spacing:2px; margin-top:2px; }
+  .btnrow { display:flex; gap:10px; margin:0 0 14px; flex-wrap:wrap; justify-content:center; }
+  .btn2 { font-size:14px; font-weight:600; color:#efe2ff; background:rgba(255,255,255,.06); border:1px solid rgba(192,77,255,.45); border-radius:30px; padding:10px 20px; cursor:pointer; letter-spacing:.5px; }
+  .btn2:active { background:rgba(192,77,255,.25); }
+  .mbtn.sel { background:rgba(192,77,255,.28); border-color:#e09fff; color:#fff; box-shadow:0 0 14px rgba(192,77,255,.5); }
+  .cta { font-size:20px; font-weight:700; color:#14061f; background:linear-gradient(90deg,#ffd24d,#ff2dd4); border:none; border-radius:40px; padding:16px 46px; cursor:pointer; letter-spacing:2px; box-shadow:0 0 30px rgba(255,45,212,.45); animation:pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 50% { transform:scale(1.05); box-shadow:0 0 44px rgba(255,210,77,.7);} }
+  .howto { margin-top:16px; color:#a08cc0; font-size:13px; line-height:1.8; }
+  #shop { display:flex; gap:12px; margin-bottom:14px; justify-content:center; }
+  .sw { width:46px; height:46px; border-radius:50%; cursor:pointer; border:2px solid rgba(255,255,255,.25); display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; color:#fff; text-shadow:0 1px 3px #000; padding:0; }
+  .sw.sel { outline:3px solid #fff; }
+  .sw.locked { opacity:.55; }
+  #modeDesc { color:#cbb8e8; font-size:12.5px; margin-bottom:12px; min-height:16px; }
+  .toggles { display:flex; gap:10px; margin-bottom:14px; }
+
+  /* results */
+  #rScore { font-size:64px; font-weight:900; color:#fff; text-shadow:0 0 26px #ffd24d,0 0 60px #ff2dd4; font-variant-numeric:tabular-nums; }
+  #newbest { color:#4dff88; font-weight:800; letter-spacing:3px; font-size:15px; min-height:22px; text-shadow:0 0 14px #4dff88; }
+  #rPalette { display:flex; gap:4px; justify-content:center; margin:10px 0 4px; }
+  #rPalette div { width:22px; height:34px; border-radius:6px; border:1px solid rgba(255,255,255,.4); }
+  #coinsEarned { color:#ffd24d; font-weight:800; margin-bottom:8px; text-shadow:0 0 10px #ff8800; }
+
+  /* gallery */
+  #galGrid { display:flex; flex-wrap:wrap; gap:12px; justify-content:center; max-width:640px; margin-bottom:18px; }
+  .gcard { width:136px; border:1px solid rgba(192,77,255,.4); border-radius:12px; background:rgba(255,255,255,.04); padding:10px; }
+  .gcard.empty { opacity:.35; border-style:dashed; }
+  .gcard .gd { font-family:Consolas,monospace; font-size:10.5px; color:#a08cc0; margin-bottom:6px; letter-spacing:1px; }
+  .gcard .strip { display:flex; height:34px; border-radius:6px; overflow:hidden; border:1px solid rgba(255,255,255,.3); }
+  .gcard .strip i { flex:1; }
+  .gcard .gs { font-size:13px; font-weight:700; color:#ffd24d; margin-top:6px; }
+  .gcard.empty .strip { background:repeating-linear-gradient(45deg,#221638,#221638 6px,#180f28 6px,#180f28 12px); }
+  .gcard.empty .gs { color:#5c4d78; }
+
+  #toast { position:fixed; bottom:70px; left:50%; transform:translateX(-50%); background:rgba(255,210,77,.95); color:#14061f; font-weight:700; padding:10px 26px; border-radius:30px; font-size:14px; z-index:50; transition:opacity .4s; opacity:0; pointer-events:none; }
+  #streakChip { position:fixed; top:14px; left:50%; transform:translateX(-50%); z-index:6; color:#ffb44d; font-size:13px; font-weight:700; text-shadow:0 0 10px #ff8800; pointer-events:none; }
+  #mute { position:fixed; bottom:18px; right:16px; z-index:20; font-size:20px; background:none; border:none; cursor:pointer; filter:drop-shadow(0 0 6px #ff2dd4); }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="hud" class="hidden">
+  <div class="hcell"><div class="v" id="scoreV">0</div><div class="l">score</div></div>
+  <div class="hcell"><div class="v" id="roundV">1/10</div><div class="l">round</div></div>
+</div>
+<div id="target" class="hidden">
+  <div class="lbl">match this</div>
+  <div id="swatch"></div>
+  <div id="mixRow" class="hidden"><div class="mini" id="miniA"></div><div class="mini" id="miniB"></div></div>
+</div>
+<div id="hint" class="hidden">TAP when the ring matches</div>
+<div id="streakChip"></div>
+<button id="mute">🔊</button>
+
+<div id="menu" class="overlay">
+  <h1>COLOR SURGE</h1>
+  <div class="tag">tap when the colors match &middot; 99%+ = <b style="color:#ffd24d">PERFECT</b></div>
+  <div class="daily">
+    <div>🌍 Everyone on Earth matches the <b>SAME palette</b> today</div>
+    <div class="cd">new palette in <span id="cd1">--:--</span></div>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="v" id="mTodayBest">0</div><div class="l">today's best</div></div>
+    <div class="stat"><div class="v" id="mAllBest">0</div><div class="l">all-time</div></div>
+    <div class="stat"><div class="v" id="mStreakD">0</div><div class="l">day streak</div></div>
+  </div>
+  <div class="btnrow">
+    <button class="btn2 mbtn" data-mode="hue">🎯 HUE</button>
+    <button class="btn2 mbtn" data-mode="shade">🌗 SHADE</button>
+    <button class="btn2 mbtn" data-mode="mix">🧪 MIX</button>
+  </div>
+  <div id="modeDesc"></div>
+  <div class="btnrow"><span class="btn2" id="coinTotal" style="cursor:default">🪙 0</span><button class="btn2" id="galBtn">🖼️ GALLERY</button></div>
+  <div id="shop"></div>
+  <div class="toggles"><button class="btn2" id="assistBtn">◉ assist: off</button></div>
+  <button class="cta" id="playBtn">TAP TO PLAY</button>
+  <div class="howto">the ring cycles through colors — freeze it at the right moment<br>collect today's palette in your <b style="color:#e09fff">Gallery</b> · miss a day, keep the gap forever</div>
+</div>
+
+<div id="results" class="overlay hidden">
+  <div id="newbest"></div>
+  <div id="rScore">0</div>
+  <div class="tag" id="rMsg">good eye.</div>
+  <div id="rPalette"></div>
+  <div id="coinsEarned"></div>
+  <div class="stats">
+    <div class="stat"><div class="v" id="rAvg">0%</div><div class="l">avg match</div></div>
+    <div class="stat"><div class="v" id="rPerf">0</div><div class="l">perfects</div></div>
+    <div class="stat"><div class="v" id="rTodayBest">0</div><div class="l">today's best</div></div>
+    <div class="stat"><div class="v" id="rStreak">0</div><div class="l">day streak</div></div>
+  </div>
+  <button class="cta" id="againBtn">PLAY AGAIN</button>
+  <div class="btnrow" style="margin-top:14px">
+    <button class="btn2" id="shareBtn">📣 Challenge a friend</button>
+    <button class="btn2" id="copyBtn">🔗 Copy link + score</button>
+    <button class="btn2" id="menuBtn">🛒 shop / menu</button>
+  </div>
+  <div class="howto">same palette for everyone until <span id="cd2">--:--</span></div>
+</div>
+
+<div id="gallery" class="overlay hidden">
+  <h1 style="font-size:38px">GALLERY</h1>
+  <div class="tag">every day you play becomes a card &middot; miss a day — the gap stays forever</div>
+  <div id="galGrid"></div>
+  <button class="cta" id="galBack">BACK</button>
+</div>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+/* ============================================================
+   COLOR SURGE — color-matching timing game.
+   Ring cycles colors; tap to lock at the exact match moment.
+   Daily UTC palette (same for everyone), 3 modes, gallery
+   collection, coins/materials, streaks, CrazyGames SDK.
+   Single file. No backend. No assets.
+   ============================================================ */
+
+// ---------- daily seed ----------
+const now = new Date();
+const dateStr = now.getUTCFullYear() + '-' + String(now.getUTCMonth()+1).padStart(2,'0') + '-' + String(now.getUTCDate()).padStart(2,'0');
+function hashStr(s){ let h = 2166136261; for (let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry32(a){ return function(){ a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+
+// ---------- persistence ----------
+const LS = {
+  get(k, d){ try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch(e){ return d; } },
+  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+};
+let coins    = LS.get('cs_coins', 0);
+let owned    = LS.get('cs_owned', [0]);
+let themeIdx = LS.get('cs_theme', 0);
+let modeSel  = LS.get('cs_mode', 'hue');
+let assist   = LS.get('cs_assist', false);
+let muted    = LS.get('cs_muted', false);
+const MODES = ['hue', 'shade', 'mix'];
+if (!MODES.includes(modeSel)) modeSel = 'hue';
+const MODE_DESC = {
+  hue:   'match the color — ring cycles the whole rainbow',
+  shade: 'same color, different lightness — feel the tone',
+  mix:   'lock TWO colors that blend into the target'
+};
+const THEMES = [
+  { n:'NEON',   cost:0 },
+  { n:'PAINT',  cost:300 },
+  { n:'LAVA',   cost:700 },
+  { n:'JELLY',  cost:1200 },
+  { n:'GALAXY', cost:2000 }
+];
+if (!owned.includes(themeIdx)) themeIdx = 0;
+let allBest = 0, todayBest = 0;
+function loadBests(){
+  todayBest = LS.get('cs_best_' + modeSel + '_' + dateStr, 0);
+  allBest   = LS.get('cs_best_all_' + modeSel, 0);
+}
+loadBests();
+
+// ---------- day streak ----------
+(function updateStreak(){
+  const last = LS.get('cs_last_day', '');
+  let streak = LS.get('cs_streak', 0);
+  if (last !== dateStr) {
+    const y = new Date(now); y.setUTCDate(y.getUTCDate() - 1);
+    const yStr = y.getUTCFullYear() + '-' + String(y.getUTCMonth()+1).padStart(2,'0') + '-' + String(y.getUTCDate()).padStart(2,'0');
+    streak = (last === yStr) ? streak + 1 : 1;
+    LS.set('cs_streak', streak); LS.set('cs_last_day', dateStr);
+  }
+})();
+const dayStreak = LS.get('cs_streak', 1);
+
+// ---------- CrazyGames SDK (safe no-op outside their platform) ----------
+const CG = { sdk: null, lastAd: 0 };
+window.addEventListener('load', async () => {
+  try {
+    if (window.CrazyGames && window.CrazyGames.SDK) {
+      await window.CrazyGames.SDK.init();
+      CG.sdk = window.CrazyGames.SDK;
+    }
+  } catch(e){}
+});
+function cgGameplayStart(){ try { CG.sdk && CG.sdk.game.gameplayStart(); } catch(e){} }
+function cgGameplayStop(){ try { CG.sdk && CG.sdk.game.gameplayStop(); } catch(e){} }
+function cgHappy(){ try { CG.sdk && CG.sdk.game.happytime(); } catch(e){} }
+function cgMidgameAd(){
+  const nowMs = Date.now();
+  if (!CG.sdk || nowMs - CG.lastAd < 90000) return;
+  CG.lastAd = nowMs;
+  const wasMuted = muted;
+  try {
+    CG.sdk.ad.requestAd('midgame', {
+      adStarted:  () => { muted = true; },
+      adFinished: () => { muted = wasMuted; },
+      adError:    () => { muted = wasMuted; }
+    });
+  } catch(e) { muted = wasMuted; }
+}
+
+// ---------- canvas ----------
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+let W = 0, H = 0;
+function resize(){
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener('resize', resize); resize();
+
+// ---------- color helpers ----------
+function hsl(h, s, l){ return 'hsl(' + h.toFixed(1) + ',' + s + '%,' + l + '%)'; }
+function hueDist(a, b){ const d = Math.abs(a - b) % 360; return d > 180 ? 360 - d : d; }
+function circMean(a, b){
+  const ar = a * Math.PI / 180, br = b * Math.PI / 180;
+  let m = Math.atan2((Math.sin(ar) + Math.sin(br)) / 2, (Math.cos(ar) + Math.cos(br)) / 2) * 180 / Math.PI;
+  return (m + 360) % 360;
+}
+function hslToHex(h, s, l){
+  s /= 100; l /= 100;
+  const k = n => (n + h / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = n => { const c = l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1))); return Math.round(255 * c).toString(16).padStart(2, '0'); };
+  return '#' + f(0) + f(8) + f(4);
+}
+
+// ---------- run state ----------
+const ROUNDS = 10;
+let state = 'menu';                 // menu | play | results | gallery
+let rng, targets = [], round = 0, score = 0, perfects = 0, matchSum = 0, matches = 0;
+let roundStart = 0, period = 2.2, locked = false, lockedUntil = 0, lockCol = null;
+let mixPhase = 0, mixA = 0;         // MIX: 0 = locking A, 1 = locking B
+let particles = [], floats = [], shake = 0;
+
+function newRun(){
+  rng = mulberry32(hashStr('color-surge-' + dateStr + '-' + modeSel));
+  targets = [];
+  for (let i = 0; i < ROUNDS; i++) {
+    if (modeSel === 'hue') targets.push({ h: rng() * 360, s: 85, l: 55 });
+    else if (modeSel === 'shade') targets.push({ h: rng() * 360, s: 75, l: 22 + rng() * 52 });
+    else { const a = rng() * 360, b = (a + 90 + rng() * 140) % 360; targets.push({ a, b, h: circMean(a, b), s: 80, l: 55 }); }
+  }
+  round = 0; score = 0; perfects = 0; matchSum = 0; matches = 0;
+  particles = []; floats = [];
+  state = 'play';
+  show(menuEl, false); show(resultsEl, false); show(galleryEl, false);
+  show(hudEl, true); show(targetEl, true); show(hintEl, true);
+  scoreV.textContent = '0';
+  startRound();
+  cgGameplayStart();
+}
+function startRound(){
+  locked = false; lockCol = null; mixPhase = 0;
+  period = Math.max(1.05, (modeSel === 'hue' ? 2.3 : 2.0) - round * 0.13);
+  roundStart = performance.now();
+  const tg = targets[round];
+  roundV.textContent = (round + 1) + '/' + ROUNDS;
+  swatchEl.style.background = hsl(tg.h, tg.s, tg.l);
+  swatchEl.style.boxShadow = '0 0 34px ' + hsl(tg.h, tg.s, tg.l);
+  if (modeSel === 'mix') {
+    show(mixRowEl, true);
+    miniA.style.background = '#2a2140'; miniB.style.background = '#2a2140';
+    hintEl.textContent = 'TAP twice — mix two colors into the target';
+  } else {
+    show(mixRowEl, false);
+    hintEl.textContent = modeSel === 'shade' ? 'TAP when the tone matches' : 'TAP when the ring matches';
+  }
+}
+
+// current cycling value at time t (ms)
+function cycleAt(t){
+  const ph = ((t - roundStart) / 1000 / period) % 1;
+  const tg = targets[round];
+  if (modeSel === 'shade') {
+    const l = 15 + 70 * (0.5 + 0.5 * Math.sin(ph * Math.PI * 2));
+    return { h: tg.h, s: tg.s, l, ph, val: l };
+  }
+  const h = ph * 360;
+  return { h, s: 85, l: 55, ph, val: h };
+}
+// target phase (0..1) for assist marker
+function targetPhase(){
+  const tg = targets[round];
+  if (modeSel === 'shade') {
+    const x = Math.max(-1, Math.min(1, (tg.l - 50) / 35));
+    return Math.asin(x) / (Math.PI * 2) + 0.25; // one of the solutions; good enough as a cue
+  }
+  if (modeSel === 'mix') return (mixPhase === 0 ? targets[round].a : targets[round].b) / 360;
+  return tg.h / 360;
+}
+
+function lock(){
+  if (state !== 'play' || locked) return;
+  const t = performance.now();
+  const cur = cycleAt(t);
+  const tg = targets[round];
+  let matchPct, doneRound = true;
+
+  if (modeSel === 'mix' && mixPhase === 0) {
+    mixA = cur.h; mixPhase = 1;
+    miniA.style.background = hsl(mixA, 80, 55);
+    roundStart = performance.now();          // restart cycle for component B
+    blip(620, 0.08, 'triangle', 0.1);
+    flash(cur, null);
+    return;
+  }
+  if (modeSel === 'mix') {
+    const mix = circMean(mixA, cur.h);
+    miniB.style.background = hsl(cur.h, 80, 55);
+    const d = hueDist(mix, tg.h);
+    matchPct = Math.max(0, 100 - d * 1.2);
+    lockCol = { h: mix, s: 80, l: 55 };
+  } else if (modeSel === 'shade') {
+    const d = Math.abs(cur.l - tg.l);
+    matchPct = Math.max(0, 100 - d * 2.5);
+    lockCol = cur;
+  } else {
+    const d = hueDist(cur.h, tg.h);
+    matchPct = Math.max(0, 100 - d * 1.2);
+    lockCol = cur;
+  }
+
+  locked = true; lockedUntil = performance.now() + 750;
+  matchSum += matchPct; matches++;
+  const isPerfect = matchPct >= 96;
+  const pts = Math.round(matchPct) + (isPerfect ? 50 : 0);
+  score += Math.max(0, pts);
+  scoreV.textContent = score;
+  if (isPerfect) {
+    perfects++;
+    sndPerfect(); confetti(tg);
+    addFloat('PERFECT! +' + pts, '#ffd24d');
+    shake = 0.6;
+  } else if (matchPct >= 85) { sndGood(); addFloat(matchPct.toFixed(1) + '%  +' + pts, '#4dff88'); }
+  else if (matchPct >= 60) { blip(300, 0.12, 'sine', 0.1); addFloat(matchPct.toFixed(1) + '%  +' + pts, '#cbb8e8'); }
+  else { sndBad(); addFloat(matchPct.toFixed(1) + '%', '#ff4d6a'); }
+
+  setTimeout(() => {
+    round++;
+    if (round >= ROUNDS) endRun();
+    else startRound();
+  }, 760);
+}
+
+function endRun(){
+  state = 'results';
+  cgGameplayStop();
+  show(hudEl, false); show(targetEl, false); show(hintEl, false);
+  const avg = matches ? matchSum / matches : 0;
+  const earned = Math.floor(score / 25);
+  coins += earned; LS.set('cs_coins', coins);
+  document.getElementById('coinsEarned').textContent = earned > 0 ? '+' + earned + ' 🪙  (total: ' + coins + ')' : '';
+  let isNew = '';
+  if (score > todayBest) { todayBest = score; LS.set('cs_best_' + modeSel + '_' + dateStr, score); isNew = '★ TODAY\'S NEW BEST ★'; }
+  if (score > allBest)   { allBest = score;  LS.set('cs_best_all_' + modeSel, score);             isNew = '🏆 ALL-TIME RECORD 🏆'; }
+  // gallery card (best of day across modes, stores today's HUE palette)
+  const gal = LS.get('cs_gallery', {});
+  const hueRng = mulberry32(hashStr('color-surge-' + dateStr + '-hue'));
+  const cols = []; for (let i = 0; i < ROUNDS; i++) cols.push(hslToHex(hueRng() * 360, 85, 55));
+  if (!gal[dateStr] || score > gal[dateStr].score) gal[dateStr] = { score, avg: Math.round(avg), colors: cols };
+  LS.set('cs_gallery', gal);
+
+  document.getElementById('newbest').textContent = isNew;
+  document.getElementById('rScore').textContent = score;
+  document.getElementById('rAvg').textContent = avg.toFixed(1) + '%';
+  document.getElementById('rPerf').textContent = perfects;
+  document.getElementById('rTodayBest').textContent = todayBest;
+  document.getElementById('rStreak').textContent = dayStreak + '🔥';
+  const pal = document.getElementById('rPalette'); pal.innerHTML = '';
+  for (const tgt of targets) { const d = document.createElement('div'); d.style.background = hsl(tgt.h, tgt.s || 85, tgt.l || 55); pal.appendChild(d); }
+  const msgs = avg >= 90 ? ['painter\'s eye.', 'that was surgical.', 'color god.']
+             : avg >= 75 ? ['sharp eye. sharper next run?', 'so close to a perfect day.', 'the palette respects you.']
+             : ['warm-up round. it counts.', 'the ring is faster than it looks.', 'one more — you\'ve got the feel now.'];
+  document.getElementById('rMsg').textContent = msgs[Math.floor(Math.random() * msgs.length)];
+  if (isNew) cgHappy();
+  setTimeout(() => { show(resultsEl, true); cgMidgameAd(); }, 350);
+}
+
+// ---------- floats & particles ----------
+function addFloat(txt, col){ floats.push({ txt, col, y: 0, life: 1 }); }
+function confetti(tg){
+  for (let i = 0; i < 50; i++) {
+    const a = Math.random() * Math.PI * 2, sp = 120 + Math.random() * 380;
+    particles.push({ x: W/2, y: H/2, vx: Math.cos(a)*sp, vy: Math.sin(a)*sp - 120, life: 1,
+      col: i % 3 === 0 ? '#ffffff' : hsl((tg.h + (Math.random()*40-20) + 360) % 360, 90, 55 + Math.random()*20), r: 3 + Math.random()*4 });
+  }
+}
+function flash(cur){
+  for (let i = 0; i < 12; i++) {
+    const a = Math.random() * Math.PI * 2, sp = 60 + Math.random() * 160;
+    particles.push({ x: W/2, y: H/2, vx: Math.cos(a)*sp, vy: Math.sin(a)*sp, life: 0.7, col: hsl(cur.h, 85, 60), r: 2 + Math.random()*3 });
+  }
+}
+
+// ---------- audio ----------
+let AC = null;
+document.getElementById('mute').textContent = muted ? '🔇' : '🔊';
+function ac(){ if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){} } if (AC && AC.state === 'suspended') AC.resume(); return AC; }
+function blip(freq, dur, type, vol, when){
+  if (muted || !ac()) return;
+  const t0 = AC.currentTime + (when || 0);
+  const o = AC.createOscillator(), g = AC.createGain();
+  o.type = type || 'sine'; o.frequency.value = freq;
+  g.gain.setValueAtTime(vol || 0.08, t0);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(g); g.connect(AC.destination); o.start(t0); o.stop(t0 + dur);
+}
+function sndPerfect(){ blip(523, 0.12, 'triangle', 0.12); blip(659, 0.12, 'triangle', 0.12, 0.09); blip(784, 0.2, 'triangle', 0.12, 0.18); blip(1047, 0.3, 'sine', 0.1, 0.27); }
+function sndGood(){ blip(659, 0.1, 'sine', 0.1); blip(880, 0.14, 'sine', 0.09, 0.07); }
+function sndBad(){ blip(140, 0.2, 'sawtooth', 0.1); }
+document.getElementById('mute').addEventListener('click', (e) => {
+  e.stopPropagation();
+  muted = !muted; LS.set('cs_muted', muted);
+  document.getElementById('mute').textContent = muted ? '🔇' : '🔊';
+});
+
+// ---------- UI ----------
+const menuEl = document.getElementById('menu'), resultsEl = document.getElementById('results'), galleryEl = document.getElementById('gallery');
+const hudEl = document.getElementById('hud'), targetEl = document.getElementById('target'), hintEl = document.getElementById('hint');
+const swatchEl = document.getElementById('swatch'), mixRowEl = document.getElementById('mixRow');
+const miniA = document.getElementById('miniA'), miniB = document.getElementById('miniB');
+const scoreV = document.getElementById('scoreV'), roundV = document.getElementById('roundV');
+function show(el, on){ el.classList.toggle('hidden', !on); }
+function toast(t){ const el = document.getElementById('toast'); el.textContent = t; el.style.opacity = 1; setTimeout(() => el.style.opacity = 0, 1800); }
+function fmtCd(){
+  const next = new Date(now); next.setUTCHours(24, 0, 0, 0);
+  let s = Math.max(0, Math.floor((next - Date.now()) / 1000));
+  return Math.floor(s / 3600) + 'h ' + String(Math.floor((s % 3600) / 60)).padStart(2, '0') + 'm';
+}
+setInterval(() => {
+  document.getElementById('cd1').textContent = fmtCd();
+  document.getElementById('cd2').textContent = fmtCd();
+}, 1000);
+
+function themeSwatchBg(i){
+  if (i === 0) return 'conic-gradient(from 0deg, red, yellow, lime, cyan, blue, magenta, red)';
+  if (i === 1) return 'linear-gradient(135deg,#ff4d4d,#ffd24d)';
+  if (i === 2) return 'radial-gradient(circle at 40% 40%, #ffd24d, #ff4d00 70%)';
+  if (i === 3) return 'linear-gradient(135deg,#4dff88,#00e5ff)';
+  return 'radial-gradient(circle at 35% 35%, #fff, #c04dff 45%, #14061f 90%)';
+}
+function renderShop(){
+  const shop = document.getElementById('shop');
+  shop.innerHTML = '';
+  THEMES.forEach((th, i) => {
+    const b = document.createElement('button');
+    b.className = 'sw' + (i === themeIdx ? ' sel' : '') + (owned.includes(i) ? '' : ' locked');
+    b.style.background = themeSwatchBg(i);
+    b.textContent = owned.includes(i) ? '' : th.cost + '🪙';
+    b.title = th.n + ' ring';
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (owned.includes(i)) { themeIdx = i; LS.set('cs_theme', i); }
+      else if (coins >= th.cost) {
+        coins -= th.cost; owned.push(i); themeIdx = i;
+        LS.set('cs_coins', coins); LS.set('cs_owned', owned); LS.set('cs_theme', i);
+        toast('Unlocked ' + th.n + ' ring! 🎨');
+      } else toast('Need ' + (th.cost - coins) + ' more 🪙 — match closer!');
+      refreshMenu();
+    });
+    shop.appendChild(b);
+  });
+}
+function refreshMenu(){
+  loadBests();
+  document.getElementById('mTodayBest').textContent = todayBest;
+  document.getElementById('mAllBest').textContent = allBest;
+  document.getElementById('mStreakD').textContent = dayStreak + '🔥';
+  document.getElementById('streakChip').textContent = '🔥 ' + dayStreak + ' day' + (dayStreak > 1 ? 's' : '');
+  document.getElementById('coinTotal').textContent = '🪙 ' + coins;
+  document.getElementById('assistBtn').textContent = assist ? '◉ assist: ON' : '◉ assist: off';
+  document.querySelectorAll('.mbtn').forEach((b) => b.classList.toggle('sel', b.dataset.mode === modeSel));
+  document.getElementById('modeDesc').textContent = MODE_DESC[modeSel];
+  document.getElementById('cd1').textContent = fmtCd();
+  renderShop();
+}
+document.querySelectorAll('.mbtn').forEach((b) => b.addEventListener('click', (e) => {
+  e.stopPropagation();
+  modeSel = b.dataset.mode; LS.set('cs_mode', modeSel);
+  refreshMenu();
+}));
+document.getElementById('assistBtn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  assist = !assist; LS.set('cs_assist', assist);
+  refreshMenu();
+});
+document.getElementById('playBtn').addEventListener('click', newRun);
+document.getElementById('againBtn').addEventListener('click', newRun);
+document.getElementById('menuBtn').addEventListener('click', () => { state = 'menu'; show(resultsEl, false); refreshMenu(); show(menuEl, true); });
+document.getElementById('galBtn').addEventListener('click', () => { state = 'gallery'; show(menuEl, false); renderGallery(); show(galleryEl, true); });
+document.getElementById('galBack').addEventListener('click', () => { state = 'menu'; show(galleryEl, false); refreshMenu(); show(menuEl, true); });
+
+function renderGallery(){
+  const grid = document.getElementById('galGrid');
+  grid.innerHTML = '';
+  const gal = LS.get('cs_gallery', {});
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(now); d.setUTCDate(d.getUTCDate() - i);
+    const ds = d.getUTCFullYear() + '-' + String(d.getUTCMonth()+1).padStart(2,'0') + '-' + String(d.getUTCDate()).padStart(2,'0');
+    const card = document.createElement('div');
+    const rec = gal[ds];
+    card.className = 'gcard' + (rec ? '' : ' empty');
+    const label = ds.slice(5) + (ds === dateStr ? ' · today' : '');
+    if (rec) {
+      card.innerHTML = '<div class="gd">' + label + '</div><div class="strip">' + rec.colors.map(c => '<i style="background:' + c + '"></i>').join('') + '</div><div class="gs">' + rec.score + ' pts · ' + rec.avg + '%</div>';
+    } else {
+      card.innerHTML = '<div class="gd">' + label + '</div><div class="strip"></div><div class="gs">' + (ds === dateStr ? 'play today!' : 'missed') + '</div>';
+    }
+    grid.appendChild(card);
+  }
+}
+
+// ---------- share ----------
+let lastAvg = 0;
+function shareText(){
+  const avg = matches ? (matchSum / matches).toFixed(1) : '0';
+  const m = modeSel.toUpperCase();
+  return '🎨 COLOR SURGE [' + m + '] — ' + score + ' pts, ' + avg + '% avg match on today\'s palette. Everyone on Earth gets the SAME colors today. Beat me?';
+}
+document.getElementById('shareBtn').addEventListener('click', async () => {
+  const data = { title: 'COLOR SURGE', text: shareText(), url: location.href };
+  if (navigator.share) { try { await navigator.share(data); } catch(e){} }
+  else { try { await navigator.clipboard.writeText(shareText() + ' ' + location.href); toast('Copied! Send it 😈'); } catch(e){ toast('Score: ' + score); } }
+});
+document.getElementById('copyBtn').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(shareText() + ' ' + location.href); toast('Link + score copied!'); } catch(e){ toast('Copy failed'); }
+});
+
+// ---------- input ----------
+window.addEventListener('pointerdown', (e) => {
+  if (e.target.closest('button') || e.target.closest('input')) return;
+  if (state === 'play') lock();
+});
+window.addEventListener('keydown', (e) => {
+  if (e.code === 'Space' && !e.repeat) { e.preventDefault(); if (state === 'play') lock(); }
+});
+
+// ---------- render loop ----------
+refreshMenu();
+let last = performance.now();
+function frame(t){
+  requestAnimationFrame(frame);
+  const dt = Math.min(0.05, (t - last) / 1000); last = t;
+  shake = Math.max(0, shake - dt * 2.2);
+
+  ctx.save();
+  if (shake > 0.1) ctx.translate((Math.random()-0.5) * shake * 14, (Math.random()-0.5) * shake * 14);
+
+  // background
+  const bg = ctx.createRadialGradient(W/2, H/2, 60, W/2, H/2, Math.max(W, H) * 0.75);
+  bg.addColorStop(0, '#150a26'); bg.addColorStop(1, '#0a0514');
+  ctx.fillStyle = bg; ctx.fillRect(-20, -20, W + 40, H + 40);
+
+  if (state === 'play' || state === 'results') {
+    const cur = (state === 'play' && !locked) ? cycleAt(t) : (lockCol || cycleAt(t));
+    const col = hsl(cur.h, cur.s || 85, cur.l || 55);
+    const R = Math.min(W, H) * 0.26;
+    const cx = W / 2, cy = H / 2;
+    const th = THEMES[themeIdx].n;
+
+    // ring
+    let rr = R, thick = R * 0.34;
+    if (th === 'JELLY') { rr = R * (1 + 0.05 * Math.sin(t / 130)); thick = R * 0.34 * (1 + 0.1 * Math.sin(t / 90 + 2)); }
+    if (th === 'LAVA')  { rr = R * (1 + 0.03 * Math.sin(t / 220)); }
+    ctx.lineWidth = thick;
+    ctx.strokeStyle = col;
+    ctx.shadowBlur = th === 'PAINT' ? 0 : 40; ctx.shadowColor = col;
+    ctx.beginPath(); ctx.arc(cx, cy, rr, 0, 7); ctx.stroke();
+    ctx.shadowBlur = 0;
+    if (th === 'PAINT') { ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,.85)';
+      ctx.beginPath(); ctx.arc(cx, cy, rr + thick/2, 0, 7); ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx, cy, rr - thick/2, 0, 7); ctx.stroke(); }
+    if (th === 'GALAXY') {
+      for (let i = 0; i < 14; i++) {
+        const a = t / 900 + i * 0.449, r2 = rr + Math.sin(t / 300 + i * 2.1) * thick * 0.42;
+        ctx.globalAlpha = 0.5 + 0.5 * Math.sin(t / 150 + i * 1.7);
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(cx + Math.cos(a) * r2, cy + Math.sin(a) * r2, 1.6, 0, 7); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+    if (th === 'LAVA' && state === 'play' && Math.random() < 0.3) {
+      const a = Math.random() * Math.PI * 2;
+      particles.push({ x: cx + Math.cos(a) * rr, y: cy + Math.sin(a) * rr, vx: 0, vy: -30 - Math.random() * 50, life: 0.8, col, r: 2 });
+    }
+
+    // center dot = current color, bigger flash when locked
+    ctx.fillStyle = col; ctx.shadowBlur = 24; ctx.shadowColor = col;
+    ctx.beginPath(); ctx.arc(cx, cy, locked ? R * 0.36 : R * 0.22, 0, 7); ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // assist: outer phase track + target tick + moving dot
+    if (assist && state === 'play' && !locked) {
+      const ar = rr + thick * 0.5 + 16;
+      ctx.strokeStyle = 'rgba(255,255,255,.15)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(cx, cy, ar, 0, 7); ctx.stroke();
+      const tp = targetPhase() * Math.PI * 2 - Math.PI / 2;
+      ctx.strokeStyle = '#ffd24d'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.arc(cx, cy, ar, tp - 0.06, tp + 0.06); ctx.stroke();
+      const cp = cur.ph * Math.PI * 2 - Math.PI / 2;
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(cx + Math.cos(cp) * ar, cy + Math.sin(cp) * ar, 5, 0, 7); ctx.fill();
+    }
+  }
+
+  // particles
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 260 * dt; p.life -= dt * 1.3;
+    if (p.life <= 0) { particles.splice(i, 1); continue; }
+    ctx.globalAlpha = Math.max(0, p.life);
+    ctx.fillStyle = p.col;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r * Math.max(0.2, p.life), 0, 7); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // floating texts
+  for (let i = floats.length - 1; i >= 0; i--) {
+    const f = floats[i];
+    f.y += 60 * dt; f.life -= dt * 0.9;
+    if (f.life <= 0) { floats.splice(i, 1); continue; }
+    ctx.globalAlpha = Math.max(0, f.life);
+    ctx.font = '800 ' + (f.txt.startsWith('PERFECT') ? 34 : 24) + 'px "Segoe UI",sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = f.col; ctx.shadowBlur = 14; ctx.shadowColor = f.col;
+    ctx.fillText(f.txt, W / 2, H / 2 - Math.min(W, H) * 0.26 - 46 - f.y);
+    ctx.shadowBlur = 0;
+  }
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

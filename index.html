@@ -19,10 +19,10 @@
   #game { position:fixed; inset:0; display:block; touch-action:none; cursor:crosshair; }
 
   #hud { position:fixed; top:0; left:0; right:0; display:flex; justify-content:space-between; align-items:flex-start; padding:14px 16px; pointer-events:none; z-index:5; }
-  .hcell { text-align:center; }
+  .hcell { text-align:center; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); border-bottom-color:rgba(0,0,0,.5); border-radius:14px; padding:7px 18px 5px; backdrop-filter:blur(4px); }
   .hcell .v { font-family:var(--disp); font-stretch:condensed; font-size:26px; font-weight:800; color:#efe6ff; text-shadow:0 0 8px rgba(255,45,212,.35); font-variant-numeric:tabular-nums; letter-spacing:1px; }
-  .hcell .l { font-family:var(--mono); font-size:9.5px; color:#7d6d9c; text-transform:uppercase; letter-spacing:2.5px; }
-  #nets { position:fixed; top:14px; left:50%; transform:translateX(-50%); display:flex; gap:8px; z-index:5; pointer-events:none; }
+  .hcell .l { font-family:var(--mono); font-size:9.5px; color:#8d7dac; text-transform:uppercase; letter-spacing:2.5px; }
+  #nets { position:fixed; top:14px; left:50%; transform:translateX(-50%); display:flex; gap:8px; z-index:5; pointer-events:none; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); border-bottom-color:rgba(0,0,0,.5); border-radius:14px; padding:6px 14px; backdrop-filter:blur(4px); }
   #nets span { font-size:20px; filter:drop-shadow(0 0 4px rgba(0,255,200,.5)); }
   #nets span.off { opacity:.22; filter:none; }
   #hint { position:fixed; bottom:26px; left:0; right:0; text-align:center; font-size:14px; color:#cbb8e8; letter-spacing:.5px; pointer-events:none; z-index:5; text-shadow:0 1px 4px #000; }
@@ -36,7 +36,7 @@
   @keyframes rainbow { to { background-position:300%; } }
   .tag { color:#cbb8e8; font-size:15px; margin:6px 0 10px; letter-spacing:.4px; max-width:46ch; }
   #menuPet { width:150px; height:130px; margin:2px auto 6px; }
-  .daily { border:1px solid rgba(255,45,212,.35); border-radius:14px; padding:10px 20px; margin-bottom:12px; background:rgba(255,45,212,.06); font-size:14px; }
+  .daily { border:1px solid rgba(255,45,212,.35); border-top-color:rgba(255,141,233,.55); border-bottom-color:rgba(20,6,31,.9); border-radius:14px; padding:10px 20px; margin-bottom:12px; background:rgba(255,45,212,.06); font-size:14px; box-shadow:inset 0 1px 0 rgba(255,255,255,.08), 0 8px 22px rgba(0,0,0,.35); }
   .daily b { color:#ff8de9; }
   .daily .cd { color:#8de9ff; font-size:12.5px; margin-top:3px; }
   .stats { display:flex; gap:22px; margin-bottom:12px; flex-wrap:wrap; justify-content:center; }
@@ -44,14 +44,14 @@
   .stat .v { font-family:var(--disp); font-stretch:condensed; font-size:24px; font-weight:800; color:#fff; text-shadow:0 0 12px #c04dff; }
   .stat .l { font-size:10px; color:#a08cc0; text-transform:uppercase; letter-spacing:2px; margin-top:2px; }
   .btnrow { display:flex; gap:10px; margin:0 0 12px; flex-wrap:wrap; justify-content:center; }
-  .btn2 { font-size:14px; font-weight:600; color:#efe2ff; background:rgba(255,255,255,.06); border:1px solid rgba(192,77,255,.45); border-radius:30px; padding:10px 20px; cursor:pointer; letter-spacing:.5px; }
+  .btn2 { font-size:14px; font-weight:600; color:#efe2ff; background:rgba(255,255,255,.06); border:1px solid rgba(192,77,255,.45); border-bottom-color:rgba(20,6,31,.9); border-radius:30px; padding:10px 20px; cursor:pointer; letter-spacing:.5px; box-shadow:inset 0 1px 0 rgba(255,255,255,.1); }
   .btn2:active { background:rgba(192,77,255,.25); }
   .mbtn.sel { background:rgba(192,77,255,.28); border-color:#e09fff; color:#fff; box-shadow:0 0 14px rgba(192,77,255,.5); }
-  .cta { font-family:var(--disp); font-stretch:condensed; font-size:24px; font-weight:800; color:#14061f; background:linear-gradient(90deg,#ffd24d,#ff2dd4); border:none; border-radius:44px; padding:18px 52px; cursor:pointer; letter-spacing:2px; box-shadow:0 0 22px rgba(255,45,212,.4); animation:pulse 1.5s ease-in-out infinite; }
-  @keyframes pulse { 50% { transform:scale(1.05); box-shadow:0 0 32px rgba(255,210,77,.55);} }
+  .cta { font-family:var(--disp); font-stretch:condensed; font-size:24px; font-weight:800; color:#14061f; background:linear-gradient(180deg,#ffe08a,#ffd24d 30%,#ff2dd4); border:none; border-radius:44px; padding:18px 52px; cursor:pointer; letter-spacing:2px; box-shadow:0 0 22px rgba(255,45,212,.4), inset 0 2px 0 rgba(255,255,255,.5), inset 0 -3px 0 rgba(0,0,0,.28), 0 6px 16px rgba(0,0,0,.4); animation:pulse 1.5s ease-in-out infinite; }
+  @keyframes pulse { 50% { transform:scale(1.05); box-shadow:0 0 32px rgba(255,210,77,.55), inset 0 2px 0 rgba(255,255,255,.5), inset 0 -3px 0 rgba(0,0,0,.28), 0 6px 16px rgba(0,0,0,.4);} }
   .howto { margin-top:12px; color:#a08cc0; font-size:12.5px; line-height:1.8; }
   #shop { display:flex; gap:12px; margin-bottom:12px; justify-content:center; }
-  .sw { width:48px; height:48px; border-radius:14px; cursor:pointer; border:2px solid rgba(255,255,255,.22); background:rgba(255,255,255,.05); display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:9px; font-weight:700; color:#ffd24d; padding:0; gap:2px; }
+  .sw { width:48px; height:48px; border-radius:14px; cursor:pointer; border:2px solid rgba(255,255,255,.22); border-bottom-color:rgba(0,0,0,.55); background:rgba(255,255,255,.05); display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:9px; font-weight:700; color:#ffd24d; padding:0; gap:2px; box-shadow:inset 0 1px 0 rgba(255,255,255,.12); }
   .sw .ic { font-size:19px; line-height:1; }
   .sw.sel { outline:3px solid #fff; }
   .sw.locked { opacity:.5; }
@@ -64,7 +64,7 @@
   #coinsEarned { color:#ffd24d; font-weight:800; margin-bottom:8px; text-shadow:0 0 10px #ff8800; }
 
   #galGrid { display:flex; flex-wrap:wrap; gap:12px; justify-content:center; max-width:660px; margin-bottom:16px; }
-  .gcard { width:150px; border:1px solid rgba(192,77,255,.4); border-radius:12px; background:rgba(255,255,255,.04); padding:10px; }
+  .gcard { width:150px; border:1px solid rgba(192,77,255,.4); border-top-color:rgba(224,159,255,.6); border-bottom-color:rgba(20,6,31,.9); border-radius:12px; background:rgba(255,255,255,.04); padding:10px; box-shadow:inset 0 1px 0 rgba(255,255,255,.07), 0 6px 16px rgba(0,0,0,.3); }
   .gcard.empty { opacity:.35; border-style:dashed; }
   .gcard .gd { font-family:var(--mono); font-size:10.5px; color:#a08cc0; margin-bottom:6px; letter-spacing:1px; }
   .gcard .den { display:flex; flex-wrap:wrap; gap:2px; justify-content:center; min-height:52px; align-items:center; }
@@ -277,7 +277,8 @@ function genTarget(){
   const a = rng() * 360, b = (a + 90 + rng() * 140) % 360;
   return { a, b, h: circMean(a, b), s: 78, l: 55 };
 }
-function arenaR(){ return Math.min(W, H) * 0.32; }
+function arenaR(){ return Math.min(W, H) * 0.40; }
+const EY = 0.84;   // вертикальное сжатие эллипса арены
 function newRun(){
   rng = mulberry32(hashStr('color-surge-' + dateStr + '-' + modeSel));
   targets = []; round = 0; score = 0; perfects = 0; matchSum = 0; matches = 0;
@@ -575,37 +576,60 @@ window.addEventListener('keydown', (e) => {
 
 // ---------- critter drawing ----------
 function drawCritter(g, x, y, r, colH, colS, colL, alpha, t, mood, hat){
-  const bodyCol = 'hsla(' + colH.toFixed(0) + ',' + colS + '%,' + colL + '%,' + alpha.toFixed(2) + ')';
-  const darkCol = 'hsla(' + colH.toFixed(0) + ',' + colS + '%,' + Math.max(10, colL - 18) + '%,' + alpha.toFixed(2) + ')';
-  const hop = mood === 'tease' ? Math.abs(Math.sin(t / 70)) * r * 0.5 : Math.abs(Math.sin(t / 260)) * r * 0.12;
-  const sq = mood === 'caught' ? 0.75 : 1 - Math.sin(t / 260) * 0.05;
+  const A = alpha.toFixed(2);
+  const bodyCol = 'hsla(' + colH.toFixed(0) + ',' + colS + '%,' + colL + '%,' + A + ')';
+  const liteCol = 'hsla(' + colH.toFixed(0) + ',' + colS + '%,' + Math.min(80, colL + 14) + '%,' + A + ')';
+  const darkCol = 'hsla(' + colH.toFixed(0) + ',' + Math.min(90, colS + 8) + '%,' + Math.max(10, colL - 20) + '%,' + A + ')';
+  const lineCol = 'hsla(' + colH.toFixed(0) + ',' + colS + '%,' + Math.max(6, colL - 32) + '%,' + Math.min(1, alpha * 1.1).toFixed(2) + ')';
+  const hop = mood === 'tease' ? Math.abs(Math.sin(t / 110)) * r * 0.42 : Math.abs(Math.sin(t / 300)) * r * 0.1;
+  const sq = mood === 'caught' ? 0.78 : 1 - Math.sin(t / 300) * 0.04;
   const yy = y - hop;
   g.save();
+  g.lineJoin = 'round'; g.lineCap = 'round';
+  // тень-опора (заземляет персонажа)
+  g.fillStyle = 'rgba(0,0,0,' + (0.28 * Math.max(alpha, 0.35)).toFixed(2) + ')';
+  g.beginPath(); g.ellipse(x, y + r * 0.86, r * (0.85 - hop / r * 0.3), r * 0.18, 0, 0, 7); g.fill();
   // feet
   g.fillStyle = darkCol;
-  const shf = Math.sin(t / 120) * r * 0.1;
+  const shf = Math.sin(t / 160) * r * 0.08;
   g.beginPath(); g.ellipse(x - r*0.4 + shf, y + r*0.72, r*0.22, r*0.13, 0, 0, 7); g.fill();
   g.beginPath(); g.ellipse(x + r*0.4 - shf, y + r*0.72, r*0.22, r*0.13, 0, 0, 7); g.fill();
-  // ears
+  // ears (с контуром)
+  g.lineWidth = Math.max(1.5, r * 0.055); g.strokeStyle = lineCol;
   g.fillStyle = bodyCol;
-  g.beginPath(); g.arc(x - r*0.5, yy - r*0.75, r*0.34, 0, 7); g.fill();
-  g.beginPath(); g.arc(x + r*0.5, yy - r*0.75, r*0.34, 0, 7); g.fill();
+  g.beginPath(); g.arc(x - r*0.5, yy - r*0.72, r*0.34, 0, 7); g.fill(); g.stroke();
+  g.beginPath(); g.arc(x + r*0.5, yy - r*0.72, r*0.34, 0, 7); g.fill(); g.stroke();
   g.fillStyle = darkCol;
-  g.beginPath(); g.arc(x - r*0.5, yy - r*0.75, r*0.17, 0, 7); g.fill();
-  g.beginPath(); g.arc(x + r*0.5, yy - r*0.75, r*0.17, 0, 7); g.fill();
-  // body
-  g.fillStyle = bodyCol;
+  g.beginPath(); g.arc(x - r*0.5, yy - r*0.72, r*0.16, 0, 7); g.fill();
+  g.beginPath(); g.arc(x + r*0.5, yy - r*0.72, r*0.16, 0, 7); g.fill();
+  // body — объём: градиент с бликом сверху-слева + контур
+  const bgrad = g.createRadialGradient(x - r*0.35, yy - r*0.45, r*0.1, x, yy, r * 1.15);
+  bgrad.addColorStop(0, liteCol); bgrad.addColorStop(0.6, bodyCol); bgrad.addColorStop(1, darkCol);
+  g.fillStyle = bgrad;
   g.beginPath(); g.ellipse(x, yy, r, r * sq, 0, 0, 7); g.fill();
+  g.lineWidth = Math.max(1.5, r * 0.055); g.strokeStyle = lineCol;
+  g.beginPath(); g.ellipse(x, yy, r, r * sq, 0, 0, 7); g.stroke();
+  // щёчки
+  g.fillStyle = 'hsla(340,85%,72%,' + (alpha * 0.55).toFixed(2) + ')';
+  g.beginPath(); g.ellipse(x - r*0.55, yy + r*0.18, r*0.14, r*0.1, 0, 0, 7); g.fill();
+  g.beginPath(); g.ellipse(x + r*0.55, yy + r*0.18, r*0.14, r*0.1, 0, 0, 7); g.fill();
   // eyes — ALWAYS visible (the camouflage tell: only eyes remain!)
-  const blink = (Math.sin(t / 900 + x) > 0.96) ? 0.15 : 1;
-  const ex = r * 0.34, ey = yy - r * 0.1, er = r * 0.2;
+  const blink = (Math.sin(t / 1100 + x) > 0.965) ? 0.12 : 1;
+  const ex = r * 0.34, ey = yy - r * 0.1, er = r * 0.23;
   g.fillStyle = '#fff';
-  g.beginPath(); g.ellipse(x - ex, ey, er, er * blink, 0, 0, 7); g.fill();
-  g.beginPath(); g.ellipse(x + ex, ey, er, er * blink, 0, 0, 7); g.fill();
+  g.strokeStyle = 'rgba(20,20,20,.55)'; g.lineWidth = Math.max(1, r * 0.03);
+  g.beginPath(); g.ellipse(x - ex, ey, er, er * blink, 0, 0, 7); g.fill(); g.stroke();
+  g.beginPath(); g.ellipse(x + ex, ey, er, er * blink, 0, 0, 7); g.fill(); g.stroke();
   g.fillStyle = '#141414';
   const px = mood === 'tease' ? r * 0.07 : 0;
-  g.beginPath(); g.ellipse(x - ex + px, ey + r*0.03, er*0.5, er*0.5*blink, 0, 0, 7); g.fill();
-  g.beginPath(); g.ellipse(x + ex + px, ey + r*0.03, er*0.5, er*0.5*blink, 0, 0, 7); g.fill();
+  g.beginPath(); g.ellipse(x - ex + px, ey + r*0.03, er*0.52, er*0.52*blink, 0, 0, 7); g.fill();
+  g.beginPath(); g.ellipse(x + ex + px, ey + r*0.03, er*0.52, er*0.52*blink, 0, 0, 7); g.fill();
+  // искорки в глазах
+  if (blink > 0.5) {
+    g.fillStyle = 'rgba(255,255,255,.95)';
+    g.beginPath(); g.arc(x - ex + px - er*0.18, ey - er*0.2, er*0.16, 0, 7); g.fill();
+    g.beginPath(); g.arc(x + ex + px - er*0.18, ey - er*0.2, er*0.16, 0, 7); g.fill();
+  }
   // mouth / tongue
   if (mood === 'tease') {
     g.fillStyle = 'rgba(255,110,150,' + Math.max(alpha, 0.9) + ')';
@@ -678,48 +702,72 @@ function frame(t){
     const R = arenaR();
     const cx = W/2, cy = H/2;
 
+    // тень-подложка под ареной (глубина)
+    ctx.fillStyle = 'rgba(0,0,0,.4)';
+    ctx.beginPath(); ctx.ellipse(cx, cy + 16, R * 1.04, R * EY * 1.02, 0, 0, 7); ctx.fill();
+
     // arena floor (the color-shifting spotlight)
     const floorCol = hsl(cur.h, cur.s || 82, cur.l || 55);
-    const fg = ctx.createRadialGradient(cx, cy - R*0.2, R*0.1, cx, cy, R);
-    fg.addColorStop(0, hsl(cur.h, cur.s || 82, Math.min(72, (cur.l || 55) + 10)));
-    fg.addColorStop(1, floorCol);
+    const fg = ctx.createRadialGradient(cx, cy - R*0.25, R*0.1, cx, cy, R);
+    fg.addColorStop(0, hsl(cur.h, cur.s || 82, Math.min(74, (cur.l || 55) + 12)));
+    fg.addColorStop(0.75, floorCol);
+    fg.addColorStop(1, hsl(cur.h, cur.s || 82, Math.max(8, (cur.l || 55) - 16)));
     ctx.fillStyle = fg;
-    ctx.beginPath(); ctx.ellipse(cx, cy, R, R * 0.82, 0, 0, 7); ctx.fill();
-    // rim + tick scale (design layer)
-    ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,.25)';
-    ctx.beginPath(); ctx.ellipse(cx, cy, R, R * 0.82, 0, 0, 7); ctx.stroke();
-    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.ellipse(cx, cy, R, R * EY, 0, 0, 7); ctx.fill();
+
+    // стеклянный блик сверху
+    const sheen = ctx.createLinearGradient(0, cy - R * EY, 0, cy);
+    sheen.addColorStop(0, 'rgba(255,255,255,.16)'); sheen.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = sheen;
+    ctx.beginPath(); ctx.ellipse(cx, cy, R, R * EY, 0, 0, 7); ctx.fill();
+
+    // грани: тёмный борт → светлая кромка → внутренняя фаска
+    ctx.lineWidth = 8; ctx.strokeStyle = 'rgba(0,0,0,.55)';
+    ctx.beginPath(); ctx.ellipse(cx, cy, R + 5, R * EY + 5, 0, 0, 7); ctx.stroke();
+    ctx.lineWidth = 2.5; ctx.strokeStyle = 'rgba(255,255,255,.45)';
+    ctx.beginPath(); ctx.ellipse(cx, cy, R + 1, R * EY + 1, 0, 0, 7); ctx.stroke();
+    ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(255,255,255,.14)';
+    ctx.beginPath(); ctx.ellipse(cx, cy, R - 9, (R - 9) * EY, 0, 0, 7); ctx.stroke();
+
+    // шкала делений по борту
+    ctx.lineWidth = 1.4;
     for (let i = 0; i < 36; i++) {
       const a = i / 36 * Math.PI * 2;
-      const r1x = cx + Math.cos(a) * (R + 8), r1y = cy + Math.sin(a) * (R * 0.82 + 8);
-      const r2x = cx + Math.cos(a) * (R + (i % 3 === 0 ? 16 : 11)), r2y = cy + Math.sin(a) * (R * 0.82 + (i % 3 === 0 ? 16 : 11));
-      ctx.strokeStyle = 'rgba(255,255,255,' + (i % 3 === 0 ? '.14' : '.06') + ')';
-      ctx.beginPath(); ctx.moveTo(r1x, r1y); ctx.lineTo(r2x, r2y); ctx.stroke();
+      const o1 = 12, o2 = i % 3 === 0 ? 22 : 16;
+      ctx.strokeStyle = 'rgba(255,255,255,' + (i % 3 === 0 ? '.20' : '.08') + ')';
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(a) * (R + o1), cy + Math.sin(a) * (R * EY + o1));
+      ctx.lineTo(cx + Math.cos(a) * (R + o2), cy + Math.sin(a) * (R * EY + o2));
+      ctx.stroke();
     }
 
     if (state === 'play') {
-      // critter wanders
+      // critter glides smoothly (ease-out, без рывков)
       if (cr.mood === 'idle' && !locked) {
-        const dx = cr.tx - cr.x, dy = cr.ty - cr.y;
-        const d = Math.hypot(dx, dy);
-        if (d < 6) { if (Math.random() < 0.01) pickWaypoint(); }
-        else { const sp = 46; cr.x += dx / d * sp * dt; cr.y += dy / d * sp * dt; }
+        const d = Math.hypot(cr.tx - cr.x, cr.ty - cr.y);
+        if (d < 10 && Math.random() < 0.012) pickWaypoint();
+        const sp = Math.min(1, 1.5 * dt);
+        cr.x += (cr.tx - cr.x) * sp; cr.y += (cr.ty - cr.y) * sp;
       }
-      if (cr.mood === 'tease') { cr.moodT += dt; if (cr.moodT > 0.5) pickWaypoint(); const dx = cr.tx - cr.x, dy = cr.ty - cr.y; const d = Math.hypot(dx, dy); if (d > 6) { cr.x += dx/d * 340 * dt; cr.y += dy/d * 340 * dt; } }
+      if (cr.mood === 'tease') {
+        cr.moodT += dt; if (cr.moodT > 0.45) pickWaypoint();
+        const sp = Math.min(1, 7 * dt);
+        cr.x += (cr.tx - cr.x) * sp; cr.y += (cr.ty - cr.y) * sp;
+      }
 
       // camouflage: body fades as the floor converges on the critter's color
       const lm = locked ? 100 : liveMatch(t);
       const alpha = Math.max(0.06, 1 - Math.pow(Math.max(0, lm - 35) / 65, 1.6));
-      const critR = Math.max(30, Math.min(W, H) * 0.075);
+      const critR = Math.max(40, Math.min(W, H) * 0.095);
       drawCritter(ctx, cr.x, cr.y, critR, tg.h, tg.s, tg.l, cr.mood === 'caught' ? 1 : alpha, t, cr.mood, hatIdx);
 
       // MIX lab: show the two locked components
       if (modeSel === 'mix') {
         ctx.fillStyle = mixPhase === 1 ? hsl(mixA, 78, 55) : 'rgba(255,255,255,.12)';
         ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.arc(cx - 26, cy + R * 0.82 + 34, 12, 0, 7); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.arc(cx - 26, cy + R * EY + 40, 12, 0, 7); ctx.fill(); ctx.stroke();
         ctx.fillStyle = 'rgba(255,255,255,.12)';
-        ctx.beginPath(); ctx.arc(cx + 26, cy + R * 0.82 + 34, 12, 0, 7); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.arc(cx + 26, cy + R * EY + 40, 12, 0, 7); ctx.fill(); ctx.stroke();
       }
     }
 
@@ -761,7 +809,7 @@ function frame(t){
     ctx.font = '800 ' + (f.txt.startsWith('PERFECT') ? 34 : 24) + 'px Bahnschrift, "Segoe UI", sans-serif';
     ctx.textAlign = 'center';
     ctx.fillStyle = f.col; ctx.shadowBlur = 8; ctx.shadowColor = f.col;
-    ctx.fillText(f.txt, W / 2, H / 2 - arenaR() - 40 - f.y);
+    ctx.fillText(f.txt, W / 2, Math.max(70, H / 2 - arenaR() * EY - 50) - f.y);
     ctx.shadowBlur = 0;
   }
   ctx.globalAlpha = 1;

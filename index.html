@@ -581,7 +581,7 @@ function drawCritter(g, x, y, r, colH, colS, colL, alpha, t, mood, hat){
   const liteCol = 'hsla(' + colH.toFixed(0) + ',' + colS + '%,' + Math.min(80, colL + 14) + '%,' + A + ')';
   const darkCol = 'hsla(' + colH.toFixed(0) + ',' + Math.min(90, colS + 8) + '%,' + Math.max(10, colL - 20) + '%,' + A + ')';
   const lineCol = 'hsla(' + colH.toFixed(0) + ',' + colS + '%,' + Math.max(6, colL - 32) + '%,' + Math.min(1, alpha * 1.1).toFixed(2) + ')';
-  const hop = mood === 'tease' ? Math.abs(Math.sin(t / 110)) * r * 0.42 : Math.abs(Math.sin(t / 300)) * r * 0.1;
+  const hop = mood === 'tease' ? Math.abs(Math.sin(t / 110)) * r * 0.42 : (Math.sin(t / 420) * 0.5 + 0.5) * r * 0.07;
   const sq = mood === 'caught' ? 0.78 : 1 - Math.sin(t / 300) * 0.04;
   const yy = y - hop;
   g.save();
@@ -690,7 +690,7 @@ function frame(t){
   }
 
   ctx.save();
-  if (shake > 0.1) ctx.translate((Math.random()-0.5) * shake * 14, (Math.random()-0.5) * shake * 14);
+  if (shake > 0.01) { const s = shake * shake * 12; ctx.translate(Math.sin(t / 17) * s, Math.cos(t / 12) * s); }
 
   const bg = ctx.createRadialGradient(W/2, H/2, 60, W/2, H/2, Math.max(W, H) * 0.75);
   bg.addColorStop(0, '#10081e'); bg.addColorStop(1, '#06030c');
@@ -742,17 +742,17 @@ function frame(t){
     }
 
     if (state === 'play') {
-      // critter glides smoothly (ease-out, без рывков)
+      // critter glides smoothly (frame-rate-independent damping, без рывков)
       if (cr.mood === 'idle' && !locked) {
         const d = Math.hypot(cr.tx - cr.x, cr.ty - cr.y);
-        if (d < 10 && Math.random() < 0.012) pickWaypoint();
-        const sp = Math.min(1, 1.5 * dt);
-        cr.x += (cr.tx - cr.x) * sp; cr.y += (cr.ty - cr.y) * sp;
+        if (d < 14 && Math.random() < 0.014) pickWaypoint();
+        const k = 1 - Math.exp(-1.7 * dt);
+        cr.x += (cr.tx - cr.x) * k; cr.y += (cr.ty - cr.y) * k;
       }
       if (cr.mood === 'tease') {
         cr.moodT += dt; if (cr.moodT > 0.45) pickWaypoint();
-        const sp = Math.min(1, 7 * dt);
-        cr.x += (cr.tx - cr.x) * sp; cr.y += (cr.ty - cr.y) * sp;
+        const k = 1 - Math.exp(-7 * dt);
+        cr.x += (cr.tx - cr.x) * k; cr.y += (cr.ty - cr.y) * k;
       }
 
       // camouflage: body fades as the floor converges on the critter's color

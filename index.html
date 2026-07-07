@@ -112,7 +112,7 @@
   <div id="modeDesc"></div>
   <div class="btnrow"><span class="btn2" id="coinTotal" style="cursor:default">🪙 0</span><button class="btn2" id="galBtn">🏠 CRITTER DEN</button></div>
   <div id="shop"></div>
-  <div class="howto">🥅🥅🥅 three nets · a bad snap lets one escape · they get faster the deeper you go</div>
+  <div class="howto">🥅🥅🥅🥅🥅 five nets · a bad snap lets one escape · they get faster the deeper you go</div>
 </div>
 
 <div id="results" class="overlay hidden">
@@ -260,7 +260,7 @@ function hslToHex(h, s, l){
 }
 
 // ---------- run state ----------
-const DEN_SIZE = 10, MAX_NETS = 3;
+const DEN_SIZE = 10, MAX_NETS = 5;
 let state = 'menu';                 // menu | play | results | gallery
 let rng, targets = [], round = 0, score = 0, perfects = 0, matchSum = 0, matches = 0;
 let playerCols = [], nets = MAX_NETS;
